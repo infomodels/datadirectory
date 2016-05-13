@@ -186,15 +186,13 @@ func New(cfg *Config) (*DataDirectory, error) {
 	return d, nil
 }
 
-// ReadFromFile reads data from the metadata.csv file into the RecordMaps
-// attribute on the DataDirectory object.
-func (d *DataDirectory) ReadFromFile() error {
+// PopulateMetadataFromFile reads data from an existing metadata.csv file into
+// the appropriate attributes.
+func (d *DataDirectory) PopulateMetadataFromFile() error {
 
 	var (
-		file      *os.File
-		csvReader *csv.Reader
-		line      int
-		err       error
+		file *os.File
+		err  error
 	)
 
 	// Create a strict csv.Reader
@@ -204,7 +202,25 @@ func (d *DataDirectory) ReadFromFile() error {
 
 	defer file.Close()
 
-	csvReader = csv.NewReader(file)
+	if err = d.PopulateMetadata(file); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+// PopulateMetadata reads metadata.csv-style data from the passed reader
+// into the appropriate attributes.
+func (d *DataDirectory) PopulateMetadata(r io.Reader) error {
+
+	var (
+		csvReader *csv.Reader
+		line      int
+		err       error
+	)
+
+	csvReader = csv.NewReader(r)
 	csvReader.LazyQuotes = false
 	csvReader.TrimLeadingSpace = false
 
@@ -287,8 +303,8 @@ func (d *DataDirectory) ReadFromFile() error {
 	return nil
 }
 
-// Validate checks the validity of the RecordMaps on the DataDirectory object.
-// Specifically, they are checked against any existing information on
+// Validate checks the validity of the DataDirectory object. Specifically, the
+// file metadata is checked against any existing information on
 // the DataDirectory object and then against information from the data models
 // service. If all of those checks pass, then each checksum is checked for
 // accuracy.
@@ -414,10 +430,10 @@ func (d *DataDirectory) Validate() error {
 	return nil
 }
 
-// Populate fills the RecordMaps with metadata from the files in the data
-// directory. Any information missing from the DataDirectory object is collected
-// through command line prompts.
-func (d *DataDirectory) Populate() error {
+// PopulateMetadataFromData fills the DataDirectory with metadata from the
+// data files. Also, any information missing from the DataDirectory object is
+// collected through command line prompts.
+func (d *DataDirectory) PopulateMetadataFromData() error {
 
 	var (
 		modelChoices   []string
@@ -484,8 +500,9 @@ func (d *DataDirectory) Populate() error {
 
 }
 
-// WriteToFile writes data from the DataDirectory object to the metadata.csv file.
-func (d *DataDirectory) WriteToFile() error {
+// WriteMetadataToFile writes data from the DataDirectory object to the
+// metadata.csv file. An existing metadata.csv will be overwritten.
+func (d *DataDirectory) WriteMetadataToFile() error {
 
 	var (
 		file io.Writer
@@ -496,8 +513,22 @@ func (d *DataDirectory) WriteToFile() error {
 		return err
 	}
 
+	if err = d.WriteMetadata(file); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+// WriteMetadata writes metadata.csv-style data from the DataDirectory object
+// to the passed writer.
+func (d *DataDirectory) WriteMetadata(w io.Writer) error {
+
+	var err error
+
 	// Write metadata header.
-	if _, err = file.Write([]byte(fmt.Sprintf("\"%s\"\n", strings.Join(d.header, `","`)))); err != nil {
+	if _, err = w.Write([]byte(fmt.Sprintf("\"%s\"\n", strings.Join(d.header, `","`)))); err != nil {
 		return err
 	}
 
@@ -506,7 +537,7 @@ func (d *DataDirectory) WriteToFile() error {
 		for _, val := range d.header {
 			row = append(row, record[val])
 		}
-		if _, err = file.Write([]byte(fmt.Sprintf("\"%s\"\n", strings.Join(row, `","`)))); err != nil {
+		if _, err = w.Write([]byte(fmt.Sprintf("\"%s\"\n", strings.Join(row, `","`)))); err != nil {
 			return err
 		}
 	}
@@ -514,9 +545,9 @@ func (d *DataDirectory) WriteToFile() error {
 	return nil
 }
 
-// makeRowWriter uses a populated DataDirectory object to create a walk function
-// that can be passed to filepath.Walk in order to write csv-formatted metadata
-// rows to the passed writer.
+// populateRecord is a walk function that can be passed to filepath.Walk in
+// order to fill the DataDirectory file metadata for each file in the
+// directory.
 func (d *DataDirectory) populateRecord(path string, fi os.FileInfo, inErr error) error {
 
 	var (
