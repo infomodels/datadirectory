@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -54,8 +55,9 @@ func (d *DataDirectory) ReadMetadata(r io.Reader) error {
 
 	for i, headerVal := range d.header {
 
+		var found bool
+
 		d.header[i] = strings.ToLower(headerVal)
-		found := false
 
 		for _, cHeaderVal := range canonicalHeader {
 			if d.header[i] == cHeaderVal {
@@ -74,9 +76,9 @@ func (d *DataDirectory) ReadMetadata(r io.Reader) error {
 	// Ensure required header values are present.
 	for cHeaderVal, req := range headerReq {
 
-		if req {
+		var found bool
 
-			found := false
+		if req {
 
 			for _, headerVal := range d.header {
 				if headerVal == cHeaderVal {
@@ -94,6 +96,8 @@ func (d *DataDirectory) ReadMetadata(r io.Reader) error {
 	// Read records into the DataDirectory record maps.
 	for {
 
+		var recordMap map[string]string
+
 		// Get next record, exiting if there's no more.
 		record, err := csvReader.Read()
 
@@ -108,7 +112,7 @@ func (d *DataDirectory) ReadMetadata(r io.Reader) error {
 		line++
 
 		// Create map of header values to record values.
-		recordMap := make(map[string]string)
+		recordMap = make(map[string]string)
 		d.RecordMaps = append(d.RecordMaps, recordMap)
 
 		for i, val := range record {
@@ -119,7 +123,7 @@ func (d *DataDirectory) ReadMetadata(r io.Reader) error {
 			}
 		}
 
-		recordMap["line"] = string(line)
+		recordMap["line"] = strconv.Itoa(line)
 	}
 
 	return nil
