@@ -6,12 +6,10 @@ test:
         - go get github.com/jstemmer/go-junit-report
         - go get github.com/mattn/goveralls
         - go get gopkg.in/matm/v1/gocov-html
-        # Create directory for jUnit XML test output.
-        - mkdir -p "${CIRCLE_TEST_REPORTS}/gotest"
     override:
         # Run tests outputting coverage and jUnit XML data.
         - go test -v -race -coverprofile="${CIRCLE_ARTIFACTS}/tests.out"
-          ./... | go-junit-report > "${CIRCLE_TEST_REPORTS}/gotest/tests.xml"
+          ./... | go-junit-report > "${CIRCLE_TEST_REPORTS}/tests.xml"
     post:
         # Convert test output to gocov JSON and then html output.
         - gocov convert "${CIRCLE_ARTIFACTS}/tests.out" |

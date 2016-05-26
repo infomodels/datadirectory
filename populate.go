@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -172,7 +173,7 @@ func (d *DataDirectory) populateRecord(path string, fi os.FileInfo, inErr error)
 		}
 	}
 
-	recordMap["line"] = string(len(d.RecordMaps) + 1)
+	recordMap["line"] = strconv.Itoa(len(d.RecordMaps) + 1)
 
 	return nil
 }

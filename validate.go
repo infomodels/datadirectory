@@ -37,8 +37,8 @@ func (d *DataDirectory) Validate() error {
 		}
 
 		// Check that site matches DataDirectory site, if present.
-		if d.Site != "" && recordMap["site"] != d.Site {
-			return fmt.Errorf("line '%s' site '%s' does not match expected site '%s'", recordMap["line"], recordMap["site"], d.Site)
+		if d.Site != "" && recordMap["organization"] != d.Site {
+			return fmt.Errorf("line '%s' organization '%s' does not match expected organization '%s'", recordMap["line"], recordMap["site"], d.Site)
 		}
 
 		// Check that model and version exist in the info retrieved from data
