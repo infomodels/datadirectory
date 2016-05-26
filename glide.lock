@@ -1,0 +1,8 @@
+hash: d503e8979c1c8da0494e1cf5a1539019cceb746a0c43f81a0e5f8a9e3c894e1d
+updated: 2016-05-26T10:11:25.142584243-04:00
+imports:
+- name: github.com/chop-dbhi/data-models-service
+  version: 857492fbd9d3cf929e4d2492309b399fb656f182
+  subpackages:
+  - client
+devImports: []

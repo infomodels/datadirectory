@@ -1,0 +1,5 @@
+package: github.com/infomodels/datadirectory
+import:
+- package: github.com/chop-dbhi/data-models-service
+  subpackages:
+  - client
